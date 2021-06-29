@@ -723,11 +723,13 @@ int main() {
             memset(str, 0, sizeof(str));
             fgets(str, 5, fp);
             f = (float *)str;
-            printf("%.0f, ", *f);
+            printf("%f, ", *f);
         }
         printf("]\n");
         if (slowFlag) {
             scanf("%c", &temp);
+        } else {
+            printf("\n");
         }
     }
 
