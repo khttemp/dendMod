@@ -581,7 +581,7 @@ char *cmd[574] = {
 
 int main() {
     char ch;
-    char str[1024];
+    int size;
     int slowFlag;
     int imgCnt;
     int secnt;
@@ -597,6 +597,9 @@ int main() {
     FILE *fp;
     char *arr = malloc(count * sizeof(char));
     char *arr2 = malloc(count * sizeof(char));
+    char *str = malloc(count * sizeof(char));
+    char buf[1024];
+    int index;
     printf("input comic bin file...: ");
     while ((ch = getchar()) != '\n') {
         arr[count-1] = ch;
@@ -606,13 +609,19 @@ int main() {
     arr[count-1] = '\0';
     
     fp = fopen(arr, "r");
-
     if (fp == NULL) {
         printf("No such file...Exit");
         return -1;
     }
 
     printf("find!\n\n");
+    fseek(fp, 0, SEEK_END);
+    size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    str = realloc(str, size * sizeof(char));
+    memset(str, 0, size);
+    fread(str, sizeof(char), size, fp);
+
     count = 1;
     printf("ReadComicData speed slow? (Y/N)");
     while ((ch = getchar()) != '\n') {
@@ -631,88 +640,86 @@ int main() {
         return -1;
     }
 
-    fgets(str, 17, fp);
-    if (strcmp(str, "DEND_COMICSCRIPT") != 0) {
+    index = 16;
+    memset(buf, 0, sizeof(buf));
+    strncpy(buf, str, index);
+    if (strcmp(buf, "DEND_COMICSCRIPT") != 0) {
         printf("It not DEND comic script...Exit");
         return -1;
     }
-    fgets(str, 2, fp);
+
+    index++;
     printf("ReadComicImg...\n");
-    memset(str, 0, sizeof(str));
-    fgets(str, 2, fp);
-    imgCnt = str[0];
+    imgCnt = str[index];
+    index++;
     for (i = 0; i < imgCnt; i++) {
-        memset(str, 0, sizeof(str));
-        fgets(str, 2, fp);
-        b = str[0];
-        memset(str, 0, sizeof(str));
-        fgets(str, b+1, fp);
-        printf("%s\n", str);
+        b = str[index];
+        index++;
+        memset(buf, 0, sizeof(buf));
+        strncpy(buf, &str[index], b);
+        printf("%s\n", buf);
+        index += b;
     }
     printf("\n");
     printf("ReadComicSize...\n");
-    memset(str, 0, sizeof(str));
-    fgets(str, 2, fp);
-    b = str[0];
+    b = str[index];
+    index++;
     for (i = 0; i < b; i++) {
-        fgets(str, 2, fp);
+        printf("%d -> ", str[index]);
+        index++;
         for (j = 0; j < 4; j++) {
-            memset(str, 0, sizeof(str));
-            fgets(str, 5, fp);
-            f = (float *)str;
-            if (*f != -1.0f) {
-                printf("Not -1.0, Error size!\n");
-            }
+            f = (float *)&str[index];
+            printf("%f, ", *f);
+            index += 4;
         }
+        printf("\n");
     }
     printf("\n");
     printf("ReadSE...\n");
-    memset(str, 0, sizeof(str));
-    fgets(str, 2, fp);
-    secnt = str[0];
+    secnt = str[index];
+    index++;
     for (i = 0; i < secnt; i++) {
-        memset(str, 0, sizeof(str));
-        fgets(str, 2, fp);
-        b = str[0];
-        memset(str, 0, sizeof(str));
-        fgets(str, b+1, fp);
-        printf("%s\n", str);
-        memset(str, 0, sizeof(str));
-        fgets(str, 2, fp);
+        b = str[index];
+        index++;
+        memset(buf, 0, sizeof(buf));
+        strncpy(buf, &str[index], b);
+        printf("%s", buf);
+        index += b;
+        printf(", %d\n", str[index]);
+        index++;
     }
     printf("\n");
     printf("ReadBGM...\n");
-    memset(str, 0, sizeof(str));
-    fgets(str, 2, fp);
-    bgmcnt = str[0];
+    bgmcnt = str[index];
+    index++;
     for (i = 0; i < bgmcnt; i++) {
-        memset(str, 0, sizeof(str));
-        fgets(str, 2, fp);
-        b = str[0];
-        memset(str, 0, sizeof(str));
-        fgets(str, b+1, fp);
-        printf("%s\n", str);
-        fgets(str, 2, fp);
-        fgets(str, 5, fp);
-        fgets(str, 5, fp);
+        b = str[index];
+        index++;
+        memset(buf, 0, sizeof(buf));
+        strncpy(buf, &str[index], b);
+        printf("%s\n", buf);
+        index += b;
+        index++;
+        index += 4;
+        index += 4;
     }
     printf("\n");
     printf("ReadComicData...\n");
-    fgets(str, 2, fp);
-    memset(str, 0, sizeof(str));
-    fgets(str, 3, fp);
-    p_num = (int *)str;
+    index++;
+    memset(buf, 0, sizeof(buf));
+    buf[0] = str[index++];
+    buf[1] = str[index++];
+    p_num = (int *)buf;
     num = *p_num;
     for (i = 0; i < num; i++) {
         printf("index -> %d\n", i);
-        memset(str, 0, sizeof(str));
-        fgets(str, 3, fp);
-        p_num2 = (int *)str;
+        buf[0] = str[index++];
+        buf[1] = str[index++];
+        p_num2 = (int *)buf;
         num2 = *p_num2;
         printf("cmd -> %s(%d)\n", cmd[num2], num2);
-        memset(str, 0, sizeof(str));
-        fgets(str, 2, fp);
-        b = str[0];
+        b = str[index];
+        index++;
         if (b >= 16) {
             printf("scriptErr!\n");
             b = 16;
@@ -720,10 +727,9 @@ int main() {
         printf("cmd_cnt -> %d\n", b);
         printf("cmd_param -> [");
         for (j = 0; j < b; j++) {
-            memset(str, 0, sizeof(str));
-            fgets(str, 5, fp);
-            f = (float *)str;
+            f = (float *)&str[index];
             printf("%f, ", *f);
+            index += 4;
         }
         printf("]\n");
         if (slowFlag) {
