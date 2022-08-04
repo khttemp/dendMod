@@ -1,6 +1,43 @@
 import struct
+import codecs
+import os
 
-f = open("MDLINFO.BIN", "rb")
+def search(file, ext):
+    folders = [
+        "Patch_4th_7",
+        "Patch_4th_6",
+        "Patch_4th_4",
+        "Patch_4th_3",
+        "Patch_4th_2",
+        "Patch_4th_1",
+        "Patch_4th_0",
+        "DenD_RS_Data",
+        "CStoRS007",
+        "CStoRS006",
+        "CStoRS005",
+        "CStoRS004",
+        "CStoRS003",
+        "CStoRS002",
+        "CStoRS001",
+        "CStoRS000",
+        "CStoRS_Data"
+    ]
+
+    for folder in folders:
+        path = folder
+        if ext == "smf":
+            path += "/MDL/"
+        else:
+            path += "/"
+
+        path += file
+
+        if os.path.exists(path):
+            return path
+
+    return "-"
+
+f = open("Patch_4th_4/MDLINFO.BIN", "rb")
 line = f.read()
 f.close()
 
@@ -8,8 +45,10 @@ index = 16
 allcnt = struct.unpack("<h", line[index:index+2])[0]
 index += 2
 
-mdlIdx = 478
 printFlag = False
+w = codecs.open("MDLINFO.csv", "w", "utf-8", "ignore")
+w.write("SMF,smf_path,bin,bin_path\n")
+
 for c in range(allcnt):
     #if c >= mdlIdx:
     #    printFlag = True
@@ -122,3 +161,15 @@ for c in range(allcnt):
     if printFlag:
         print("No.{0}->{1}".format(c, smfName))
         input()
+
+    w.write("{0},".format(smfName))
+    w.write("{0},".format(search(smfName, "smf")))
+    if binFileName:
+        w.write("{0},".format(binFileName))
+        w.write("{0}\n".format(search(binFileName, "bin")))
+    else:
+        w.write("-,-\n")
+
+w.close()
+
+    
