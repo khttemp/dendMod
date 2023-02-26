@@ -1,7 +1,7 @@
 import struct
 import sys
 
-f = open("DEND/CS_RS/CStoRS_Data/MDL/H2000_PANTA00.smf", "rb")
+f = open("DEND/CS_RS/DenD_RS_Data/MDL/H2000_Track_LowD4.smf", "rb")
 line = f.read()
 f.close()
 
@@ -16,7 +16,7 @@ animationSetCount = 0
 printFRM = True
 printMTRL = True
 printMESH = True
-
+printXYZ = False
 
 def getStructNameAndLength():
     global line
@@ -284,14 +284,14 @@ def readMESH(mesh):
                 vec = struct.unpack("<f", line[index:index+4])[0]
                 index += 4
                 vPC.append(vec)
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の位置", vPC)
 
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の色", end=", ")
             vPCcolor = struct.unpack("<l", line[index:index+4])[0]
             index += 4
-            if printMESH:
+            if printMESH and printXYZ:
                 print(vPCcolor)
         if printMESH:
             print()
@@ -314,7 +314,7 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 vN.append(vec)
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の法線", vN)
         if printMESH:
             print()
@@ -337,7 +337,7 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 vB.append(vec)
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の接線", vB)
         if printMESH:
             print()
@@ -357,7 +357,7 @@ def readMESH(mesh):
             f = struct.unpack("<f", line[index:index+4])[0]
             index += 4
             allReadCount -= 4
-            if printMESH:
+            if printMESH and printXYZ:
                 print(f, end=", ")
 
             charList = []
@@ -365,7 +365,7 @@ def readMESH(mesh):
                 charList.append(line[index])
                 index += 1
                 allReadCount -= 1
-            if printMESH:
+            if printMESH and printXYZ:
                 print(charList)
         if printMESH:
             print()
@@ -382,7 +382,7 @@ def readMESH(mesh):
     if subName == "V_UV":
         count = nextNameAndLength[1] // 16
         for i in range(count):
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点のテクスチャUV", end=", ")
             list1 = []
             for j in range(2):
@@ -390,10 +390,10 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 list1.append(f)
-            if printMESH:
+            if printMESH and printXYZ:
                 print(list1)
 
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点のライトマップ用テクスチャUV", end=", ")
             list2 = []
             for j in range(2):
@@ -401,7 +401,7 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 list2.append(f)
-            if printMESH:
+            if printMESH and printXYZ:
                 print(list2)
 
         if printMESH:
@@ -419,15 +419,15 @@ def readMESH(mesh):
     if subName == "IDX2":
         count = nextNameAndLength[1] // 2
         for i in range(count):
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点インデックス", end=", ")
             h = struct.unpack("<h", line[index:index+2])[0]
             index += 2
             allReadCount -= 2
-            if printMESH:
+            if printMESH and printXYZ:
                 print(h)
 
-        if printMESH:
+        if printMESH and printXYZ:
             print()
 
         if allReadCount <= 0:
@@ -442,14 +442,14 @@ def readMESH(mesh):
     if subName == "IDX4":
         count = nextNameAndLength[1] // 4
         for i in range(count):
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点インデックス", end=", ")
             l = struct.unpack("<l", line[index:index+4])[0]
             index += 4
             allReadCount -= 4
-            if printMESH:
+            if printMESH and printXYZ:
                 print(l)
-        if printMESH:
+        if printMESH and printXYZ:
             print()
 
         if allReadCount <= 0:
@@ -463,14 +463,17 @@ def readMESH(mesh):
 
     if subName == "MTRL":
         for i in range(materialCount):
-            readMTRL()
+            readMTRL(mesh, i)
 
             if materialCount > 1:
                 nextNameAndLength = getStructNameAndLength()
-                if printMESH:
-                    print(nextNameAndLength[0], nextNameAndLength[1])
-                subName = nextNameAndLength[0]
-                allReadCount -= 8
+                if nextNameAndLength[0] == "MESH":
+                    index -= 8
+                else:
+                    if printMESH:
+                        print(nextNameAndLength[0], nextNameAndLength[1])
+                    subName = nextNameAndLength[0]
+                    allReadCount -= 8
 
     if subName == "C_AT":
         count = nextNameAndLength[1] // 12
@@ -553,7 +556,7 @@ def readMESH(mesh):
     if subName == "C_VX":
         count = nextNameAndLength[1] // 28
         for i in range(count):
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の位置", end=", ")
             vecList = []
             for i in range(3):
@@ -561,18 +564,18 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 vecList.append(iindex)
-            if printMESH:
+            if printMESH and printXYZ:
                 print(vecList)
 
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の色", end=", ")
             colColor = struct.unpack("<l", line[index:index+4])[0]
             index += 4
             allReadCount -= 4
-            if printMESH:
+            if printMESH and printXYZ:
                 print(colColor)
 
-            if printMESH:
+            if printMESH and printXYZ:
                 print("頂点の法線", end=", ")
             vecList = []
             for i in range(3):
@@ -580,17 +583,18 @@ def readMESH(mesh):
                 index += 4
                 allReadCount -= 4
                 vecList.append(iindex)
-            if printMESH:
+            if printMESH and printXYZ:
                 print(vecList)
 
 
-def readMTRL():
+def readMTRL(mesh, mtrl):
     global line
     global index
     global nextNameAndLength
     global subName
     global allReadCount
 
+    print("MESH, MTRL:{0}-{1}".format(mesh, mtrl))
     if printMTRL:
         print("マテリアル名", end=", ")
     mName = struct.unpack("<64s", line[index:index+MAX_NAME_SIZE])[0]
