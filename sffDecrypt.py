@@ -69,7 +69,7 @@ def getName():
 
     return name
 
-f = open("FONT/STATIONNAME_4TH.SFF", "rb")
+f = open("FONT.SFF", "rb")
 line = f.read()
 f.close()
 
@@ -92,7 +92,7 @@ for i in range(len(textList)):
     idx = struct.unpack("<h", line[index:index + 2])[0]
     index += 2
     if idx != -1:
-        indexTable.append(idx)
+        indexTable.append(i)
 
 for i in range(sheetMax):
     sheetName = struct.unpack("<32s", line[index:index + 32])[0]
@@ -102,28 +102,37 @@ for i in range(sheetMax):
     print("SheetName:", sheetName)
 
 for i in range(fontMax):
+    print(hex(index), end=", ")
     sheetNo = line[index]
+
+    print("【{0}】 -> ".format(textList[indexTable[i]]), end=" ")
     print(sheetNo, end=", ")
     index += 1
 
+    # left padding?
     print(line[index], end=", ")
     index += 1
 
+    # x1
     print(line[index], end=", ")
     index += 1
 
-    print(line[index], end=", ")
+    # x2
+    print(line[index], end=", | ")
     index += 1
 
-    print(line[index], end=", ")
+    # y1
+    print(line[index], end=", | ")
     index += 1
 
-    print(line[index], end=", ")
+    # No, offset?
+    print(line[index], end=", | ")
+    index += 1
+    print(line[index], end=", | ")
     index += 1
 
-    print(line[index], end=", ")
+    # y2
+    print(line[index], end=", | ")
     index += 1
 
-    print(line[index], end=", ")
-    index += 1
     print()
