@@ -68,65 +68,58 @@ private void OutPutAutoSaveFile(string path)
 	streamWriter.WriteLine(text);
 	text = "RainEvent:\t" + this.rain_no.ToString();
 	streamWriter.WriteLine(text);
-	text = "RailCnt:\t" + SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList.Length.ToString();
+
+	text = "\nStageRes:\t" + SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length.ToString();
 	streamWriter.WriteLine(text);
-	for (int k = 0; k < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList.Length; k++)
+	for (int num41 = 0; num41 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; num41++)
 	{
-		rail_list rail_list = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList[k];
+		StageResData stageResData = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[num41];
 		text = string.Concat(new string[]
 		{
-			k.ToString(),
+			num41.ToString(),
 			"\t",
-			rail_list.prev_rail.ToString(),
+			stageResData.ab.ToString(),
 			"\t",
-			rail_list.block.ToString(),
-			"\t",
-			rail_list.offsetpos.x.ToString(),
-			"\t",
-			rail_list.offsetpos.y.ToString(),
-			"\t",
-			rail_list.offsetpos.z.ToString(),
-			"\t",
-			rail_list.dir.x.ToString(),
-			"\t",
-			rail_list.dir.y.ToString(),
-			"\t",
-			rail_list.dir.z.ToString(),
-			"\t",
-			rail_list.mdl_no.ToString(),
-			"\t",
-			rail_list.kasenchu_mdl_no.ToString(),
-			"\t",
-			rail_list.per.ToString(),
-			"\t",
-			((ulong)rail_list.flg & 255UL).ToString(),
-			"\t",
-			((ulong)(rail_list.flg >> 8) & 255UL).ToString(),
-			"\t",
-			((ulong)(rail_list.flg >> 16) & 255UL).ToString(),
-			"\t",
-			((ulong)(rail_list.flg >> 24) & 255UL).ToString(),
-			"\t",
-			rail_list.r.Length.ToString(),
-			"\t"
+			stageResData.res_name.ToString()
 		});
-		for (int l = 0; l < rail_list.r.Length; l++)
+		streamWriter.WriteLine(text);
+	}
+
+	text = "\nSetTexInfo:\t" + SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length.ToString();
+	streamWriter.WriteLine(text);
+	for (int num44 = 0; num44 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length; num44++)
+	{
+		TexInfoData texInfoData = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[num44];
+		text = string.Concat(new string[]
+		{
+			num44.ToString(),
+			"\t",
+			texInfoData.amb.ToString(),
+			"\t",
+			texInfoData.amb_child.ToString(),
+			"\t",
+			texInfoData.res_data_index.ToString(),
+			"\t",
+			texInfoData.tex_type.ToString(),
+			"\t",
+			texInfoData.change_index.ToString(),
+			"\t",
+			texInfoData.mat_index.ToString()
+		});
+		if (texInfoData.tex_type == 31)
 		{
 			text = string.Concat(new string[]
 			{
 				text,
-				rail_list.r[l].next.rail.ToString(),
 				"\t",
-				rail_list.r[l].next.no.ToString(),
+				texInfoData.f1.ToString(),
 				"\t",
-				rail_list.r[l].prev.rail.ToString(),
-				"\t",
-				rail_list.r[l].prev.no.ToString(),
-				"\t"
+				texInfoData.f2.ToString()
 			});
 		}
 		streamWriter.WriteLine(text);
 	}
+
 	text = "\nAmbCnt:\t" + SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.AmbList.Length.ToString() + "\t1";
 	streamWriter.WriteLine(text);
 	for (int num5 = 0; num5 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.AmbList.Length; num5++)

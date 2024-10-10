@@ -16,6 +16,7 @@ private void LoadAutoSaveFile(string t)
 	int num12 = -1;
 	int num13 = -1;
 	int num14 = -1;
+	int num16 = -1;
 	for (int i = 0; i < array.Length; i++)
 	{
 		if (array[i].Contains("TrainCnt:"))
@@ -66,9 +67,13 @@ private void LoadAutoSaveFile(string t)
 		{
 			num10 = i;
 		}
-		else if (array[i].Contains("RailCnt:"))
+		else if (array[i].Contains("StageRes:"))
 		{
 			num11 = i;
+		}
+		else if (array[i].Contains("SetTexInfo:"))
+		{
+			num16 = i;
 		}
 		else if (array[i].Contains("AmbCnt:"))
 		{
@@ -110,108 +115,66 @@ private void LoadAutoSaveFile(string t)
 		array10 = this.ReadTbl(array[num10]);
 	}
 	int num15 = int.Parse(array13[1]);
+
 	if (num11 > 0)
 	{
-		int num16 = int.Parse(this.ReadTbl(array[num11])[1]);
-		if (num16 == SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList.Length)
+		int stageResCnt = int.Parse(this.ReadTbl(array[num11])[1]);
+		if (stageResCnt == SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length)
 		{
-			for (int j = 0; j < num16; j++)
+			try
 			{
-				string[] array11 = this.ReadTbl(array[num11 + 1 + j]);
-				rail_list rail_list = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList[j];
-				int num17 = 1;
-				rail_list.prev_rail = int.Parse(array11[num17++]);
-				rail_list.block = int.Parse(array11[num17++]);
-				float x = float.Parse(array11[num17++]);
-				float y = float.Parse(array11[num17++]);
-				float z = float.Parse(array11[num17++]);
-				rail_list.offsetpos = new Vector3(x, y, z);
-				float x2 = float.Parse(array11[num17++]);
-				float y2 = float.Parse(array11[num17++]);
-				float z2 = float.Parse(array11[num17++]);
-				rail_list.dir = new Vector3(x2, y2, z2);
-				rail_list.mdl_no = int.Parse(array11[num17++]);
-				rail_list.kasenchu_mdl_no = int.Parse(array11[num17++]);
-				rail_list.per = float.Parse(array11[num17++]);
-				byte flg = byte.Parse(array11[num17++]);
-				byte flg2 = byte.Parse(array11[num17++]);
-				byte flg3 = byte.Parse(array11[num17++]);
-				byte flg4 = byte.Parse(array11[num17++]);
-				rail_list.flg = Define.Flg(flg, flg2, flg3, flg4);
-				int num18 = int.Parse(array11[num17++]);
-				for (int k = 0; k < num18; k++)
+				for (int num41 = 0; num41 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; num41++)
 				{
-					rail_list.r[k].next.rail = int.Parse(array11[num17++]);
-					rail_list.r[k].next.no = int.Parse(array11[num17++]);
-					rail_list.r[k].prev.rail = int.Parse(array11[num17++]);
-					rail_list.r[k].prev.no = int.Parse(array11[num17++]);
+					int num42 = 1;
+					string[] array32 = this.ReadTbl(array[num11 + 1 + num41]);
+					StageResData stageResData = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[num41];
+					stageResData.ab = array32[num42++];
+					stageResData.res_name = array32[num42++];
 				}
 			}
-			int num19 = 31;
-			ulong num20 = 1UL << (num19 & 31);
-			for (int l = 0; l < num16; l++)
+			catch (System.Exception ex)
 			{
-				rail_list rail_list2 = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList[l];
-				if (rail_list2.block < 0 || rail_list2.block >= this.mRailMgr.BlockList.Count)
-				{
-					Debug.LogError("r.block Err!!:" + l);
-				}
-				int mdl_no = rail_list2.mdl_no;
-				if (mdl_no < 0 || mdl_no >= SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.MdlList.Length)
-				{
-					Debug.LogError(string.Concat(new object[]
-					{
-						"CreateStage mdl_no Err!!:",
-						l,
-						" ",
-						mdl_no
-					}));
-					break;
-				}
-				Rail rail = this.mRailMgr.RailList[l];
-				if (rail == null)
-				{
-					Debug.LogError("rail Err!!");
-				}
-				else
-				{
-					this.mRailMgr.SetUpRail(SingletonMonoBehaviour<cGameMgr>.Instance.mMdlMgr, rail, l, mdl_no, rail_list2);
-				}
-				if (((ulong)SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.RailList[l].flg & num20) > 0UL)
-				{
-					rail.BlockNo = -1;
-					rail.gameObject.SetActive(false);
-				}
-			}
-			this.mRailMgr.AllInit = false;
-			for (int m = 0; m < this.mRailMgr.RailList.Count; m++)
-			{
-				this.mRailMgr.RailList[m].InitFlg = true;
-				this.mRailMgr.RailList[m].InitPosFlg = false;
-			}
-			for (int n = 0; n < this.mRailMgr.RailList.Count; n++)
-			{
-				this.mRailMgr.Init(n, null);
-			}
-			this.mRailMgr.AllInit = true;
-			for (int num21 = 0; num21 < this.mRailMgr.RailList.Count; num21++)
-			{
-				if (!(this.mRailMgr.RailList[num21] == null) && !this.mRailMgr.RailList[num21].mRailFlg.ChkFlg(31))
-				{
-					this.mRailMgr.RailList[num21].MathLength();
-				}
-				if (!(this.mRailMgr.RailList[num21] == null) && !this.mRailMgr.RailList[num21].mRailFlg.ChkFlg(31))
-				{
-					this.mRailMgr.UpdateRail(num21);
-				}
-			}
-			List<Rail> list = this.mRailMgr.ChkNullRail(false, true);
-			if (list != null)
-			{
-				this.mRailMgr.NullRailRec(list);
+				Debug.LogError("StageRes 読込エラー");
+				Debug.LogError(ex.ToString());
 			}
 		}
 	}
+
+	if (num16 > 0)
+	{
+		int texInfoCnt = int.Parse(this.ReadTbl(array[num16])[1]);
+		if (texInfoCnt == SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length)
+		{
+			int num43 = 0;
+			try
+			{
+				for (int num44 = 0; num44 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length; num44++)
+				{
+					num43 = num44;
+					int num45 = 1;
+					string[] array33 = this.ReadTbl(array[num16 + 1 + num44]);
+					TexInfoData texInfoData = SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[num44];
+					texInfoData.amb = int.Parse(array33[num45++]);
+					texInfoData.amb_child = int.Parse(array33[num45++]);
+					texInfoData.res_data_index = int.Parse(array33[num45++]);
+					texInfoData.tex_type = int.Parse(array33[num45++]);
+					texInfoData.change_index = int.Parse(array33[num45++]);
+					texInfoData.mat_index = int.Parse(array33[num45++]);
+					if (texInfoData.tex_type == 31 && array33.Length > num45)
+					{
+						texInfoData.f1 = float.Parse(array33[num45++]);
+						texInfoData.f2 = float.Parse(array33[num45++]);
+					}
+				}
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogError("TexInfoTex " + num43.ToString() + "番目index 読込エラー");
+				Debug.LogError(ex.ToString());
+			}
+		}
+	}
+
 	if (num12 > 0)
 	{
 		int num22 = int.Parse(this.ReadTbl(array[num12])[1]);
@@ -257,6 +220,21 @@ private void LoadAutoSaveFile(string t)
 				}
 			}
 			this.mAmbMgr.DeleteAmbList();
+
+			// this.LoadStageTex()
+			SingletonMonoBehaviour<MaterialMgr>.Instance.TexNullRemove();
+			if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList != null)
+			{
+				for (int i = 0; i < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; i++)
+				{
+					SingletonMonoBehaviour<MaterialMgr>.Instance.AddAssetBundle(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[i].ab);
+				}
+				for (int j = 0; j < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; j++)
+				{
+					this.mAmbMgr.TexList.Add(SingletonMonoBehaviour<MaterialMgr>.Instance.LoadTex(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[j].res_name, FilterMode.Bilinear, TextureWrapMode.Repeat, true));
+				}
+			}
+
 			for (int num28 = 0; num28 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.AmbList.Length; num28++)
 			{
 				int parentAmbNo = num28;
@@ -343,6 +321,128 @@ private void LoadAutoSaveFile(string t)
 			this.mAmbMgr.UpdateAll();
 		}
 	}
+
+	if (num11 > 0 || num16 > 0)
+	{
+		// this.SetKoukoku()
+		for (int i = 0; i < this.mAmbMgr.AmbList.Count; i++)
+		{
+			try
+			{
+				if (this.mAmbMgr.AmbList[i].mKoukoku != null)
+				{
+					for (int j = 0; j < this.mAmbMgr.AmbList[i].mKoukoku.Length; j++)
+					{
+						if (this.mAmbMgr.AmbList[i].mKoukoku[j] != null && this.mAmbMgr.AmbList[i].mKoukoku[j].Mesh != null && this.mAmbMgr.AmbList[i].mKoukoku[j].Mesh.materials != null && this.mAmbMgr.AmbList[i].mKoukoku[j].Mesh.materials.Length > this.mAmbMgr.AmbList[i].mKoukoku[j].MatIndex)
+						{
+							Material[] materials = this.mAmbMgr.AmbList[i].mKoukoku[j].Mesh.materials;
+							Texture2D texture2D = null;
+							if (this.mAmbMgr.AmbList[i].mKoukoku[j].KoukokuType == Define.eKoukoku.e2x1)
+							{
+								texture2D = this.mRailMgr.mKoukoku2x1.GetRandTex();
+							}
+							else if (this.mAmbMgr.AmbList[i].mKoukoku[j].KoukokuType == Define.eKoukoku.e1x1)
+							{
+								texture2D = this.mRailMgr.mKoukoku1x1.GetRandTex();
+							}
+							else if (this.mAmbMgr.AmbList[i].mKoukoku[j].KoukokuType == Define.eKoukoku.e1x2)
+							{
+								texture2D = this.mRailMgr.mKoukoku1x2.GetRandTex();
+							}
+							materials[this.mAmbMgr.AmbList[i].mKoukoku[j].MatIndex].SetTexture(Define.Shader_MainTex, texture2D);
+							materials[this.mAmbMgr.AmbList[i].mKoukoku[j].MatIndex].SetTexture(Define.Shader_EmissionMap, texture2D);
+							this.mAmbMgr.AmbList[i].mKoukoku[j].Mesh.materials = materials;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				if (this.mAmbMgr.AmbList[i].ParentRail != null)
+				{
+					Debug.LogError(string.Concat(new object[]
+					{
+						ex.Message,
+						i.ToString(),
+						" ",
+						this.mAmbMgr.AmbList[i].ParentRail.RailIndex
+					}));
+				}
+				else
+				{
+					Debug.LogError(ex.Message + i.ToString() + " NoParent");
+				}
+			}
+		}
+
+		// this.SetTex()
+		if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList != null)
+		{
+			for (int i = 0; i < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length; i++)
+			{
+				if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].amb >= 0)
+				{
+					AmbObj ambObj = this.mAmbMgr.Search(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].amb, SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].amb_child - 1);
+					if (ambObj != null)
+					{
+						if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 0 || SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 2)
+						{
+							Ekihyo ekihyo = ambObj.GetEkihyo(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (ekihyo != null)
+							{
+								ekihyo.ChangeBord(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type, this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index], SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].mat_index);
+							}
+						}
+						else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 1)
+						{
+							Ekihyo ekihyo2 = ambObj.GetEkihyo(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (ekihyo2 != null)
+							{
+								ekihyo2.ChangeBord(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type, this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index], SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].mat_index);
+							}
+						}
+						else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 20)
+						{
+							HomeNo home = ambObj.GetHome(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (home != null)
+							{
+								home.ChangeHomeMat(this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index], SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].mat_index);
+							}
+						}
+						else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 30)
+						{
+							CngTexUV texUV = ambObj.GetTexUV(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (texUV != null)
+							{
+								texUV.ChangeTex(this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index], SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].mat_index);
+							}
+						}
+						else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 31)
+						{
+							CngTexUV texUV2 = ambObj.GetTexUV(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (texUV2 != null)
+							{
+								texUV2.ChangeUV(new Vector2(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].f1, SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].f2), SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].mat_index);
+							}
+						}
+						else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 32)
+						{
+							CngTexUV texUV3 = ambObj.GetTexUV(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+							if (texUV3 != null)
+							{
+								texUV3.ChangeActive(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index);
+							}
+						}
+					}
+					else
+					{
+						Debug.LogError("NoAmb!! " + i.ToString());
+					}
+				}
+			}
+		}
+	}
+
 	int r = int.Parse(array2[1]);
 	int no = int.Parse(array2[2]);
 	float setRailPos = float.Parse(array2[3]);
@@ -378,7 +478,7 @@ private void LoadAutoSaveFile(string t)
 		if (num14 > 0)
 		{
 			int num31 = int.Parse(this.ReadTbl(array[num14])[1]);
-			this.mTrainOrg[0].SetDir(num31);
+			this.mTrainOrg[1].SetDir(num31);
 			if (num31 > 0)
 			{
 				SingletonMonoBehaviour<cGameMgr>.Instance.mSceneMgr.GetSceneCamList(1).RainDirTree.localRotation = Quaternion.identity;
