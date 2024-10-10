@@ -221,20 +221,6 @@ private void LoadAutoSaveFile(string t)
 			}
 			this.mAmbMgr.DeleteAmbList();
 
-			// this.LoadStageTex()
-			SingletonMonoBehaviour<MaterialMgr>.Instance.TexNullRemove();
-			if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList != null)
-			{
-				for (int i = 0; i < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; i++)
-				{
-					SingletonMonoBehaviour<MaterialMgr>.Instance.AddAssetBundle(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[i].ab);
-				}
-				for (int j = 0; j < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; j++)
-				{
-					this.mAmbMgr.TexList.Add(SingletonMonoBehaviour<MaterialMgr>.Instance.LoadTex(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[j].res_name, FilterMode.Bilinear, TextureWrapMode.Repeat, true));
-				}
-			}
-
 			for (int num28 = 0; num28 < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.AmbList.Length; num28++)
 			{
 				int parentAmbNo = num28;
@@ -324,6 +310,65 @@ private void LoadAutoSaveFile(string t)
 
 	if (num11 > 0 || num16 > 0)
 	{
+		// this.LoadStageTex()
+		SingletonMonoBehaviour<MaterialMgr>.Instance.TexNullRemove();
+		if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList != null)
+		{
+			for (int i = 0; i < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; i++)
+			{
+				SingletonMonoBehaviour<MaterialMgr>.Instance.AddAssetBundle(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[i].ab);
+			}
+			for (int j = 0; j < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList.Length; j++)
+			{
+				this.mAmbMgr.TexList.Add(SingletonMonoBehaviour<MaterialMgr>.Instance.LoadTex(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.StageResDataList[j].res_name, FilterMode.Bilinear, TextureWrapMode.Repeat, true));
+			}
+		}
+
+		// this.ChangeMdlTex()
+		if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList != null)
+		{
+			for (int i = 0; i < SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList.Length; i++)
+			{
+				if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].amb < 0)
+				{
+					GameObject mdl = this.mMdlMgr.GetMdl(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].amb_child);
+					if (mdl != null)
+					{
+						AmbObj component = mdl.GetComponent<AmbObj>();
+						if (component != null)
+						{
+							if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 10)
+							{
+								TQLEDBord ledbord = component.GetLEDBord(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+								if (ledbord != null)
+								{
+									Texture2D tex = this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index];
+									ledbord.MainMesh.materials[ledbord.line_mat_index].SetTexture(Define.Shader_MainTex, tex);
+									ledbord.MainMesh.materials[ledbord.line_mat_index].SetTexture(Define.Shader_EmissionMap, tex);
+								}
+							}
+							else if (SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].tex_type == 11)
+							{
+								HQLEDBord hqledbord = component.GetHQLEDBord(SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].change_index);
+								if (hqledbord != null)
+								{
+									Texture2D tex = this.mAmbMgr.TexList[SingletonMonoBehaviour<cGameMgr>.Instance.mStageTblMgr.TexInfoDataList[i].res_data_index];
+									hqledbord.JMesh.materials[0].SetTexture(Define.Shader_MainTex, tex);
+									hqledbord.JMesh.materials[0].SetTexture(Define.Shader_EmissionMap, tex);
+									hqledbord.EMesh.materials[0].SetTexture(Define.Shader_MainTex, tex);
+									hqledbord.EMesh.materials[0].SetTexture(Define.Shader_EmissionMap, tex);
+									hqledbord.PassMesh.materials[0].SetTexture(Define.Shader_MainTex, tex);
+									hqledbord.PassMesh.materials[0].SetTexture(Define.Shader_EmissionMap, tex);
+									hqledbord.ScrollMesh.materials[0].SetTexture(Define.Shader_MainTex, tex);
+									hqledbord.ScrollMesh.materials[0].SetTexture(Define.Shader_EmissionMap, tex);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		// this.SetKoukoku()
 		for (int i = 0; i < this.mAmbMgr.AmbList.Count; i++)
 		{
