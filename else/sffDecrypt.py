@@ -1,29 +1,19 @@
 import struct
 import codecs
 
-index = 0
-textList = []
+allHexTextList = []
 
-def inputText(mode):
-    global start
-    global end
-    
-    while start <= end:
-        try:
-            if mode == 1:
-                text = struct.pack(">B", start).decode("cp932")
-            elif mode == 2:
-                text = struct.pack(">H", start).decode("cp932")
-                if len(text) != 1:
-                    start += 1
-                    continue
-            #重複文字は除く
-            if text not in textList:
-                textList.append(text)
-        except:
-            pass
-        finally:
-            start += 1
+f = open("KeyCodeTable.inc", encoding="cp932")
+lines = f.readlines()
+f.close()
+
+for idx, line in enumerate(lines):
+    if line.find("//") == 0 or "//" in line:
+        continue
+    arr = line.strip().split("\t")
+    textIndex = int(arr[0].strip(","), 16)
+    if textIndex != 0xFFFF:
+        allHexTextList.append(idx)
 
 def writeText():
     global textList
@@ -40,25 +30,7 @@ def writeText():
             w.write("\t")
     w.close()
 
-#ASCII文字
-start = 0x21
-end = 0x7E
-inputText(1)
-
-#半角
-start = 0xA1
-end = 0xDF
-inputText(1)
-
-#全角
-start = 0x8141
-end = 0xFFFF
-inputText(2)
-
-def getName():
-    global index
-    global line
-
+def getName(line, index):
     nameChar4 = struct.unpack("<l", line[index:index+4])[0]
     nameChar4 = str(hex(nameChar4))[2:]
     index += 4
@@ -69,17 +41,57 @@ def getName():
 
     return name
 
+def convertFontSheetData(lines):
+    bitIndex = 0
+    bitString = ""
+    for line in lines:
+        bitString = "{:08b}".format(line) + bitString
+
+    y2 = bitString[bitIndex:bitIndex+11]
+    bitIndex += 11
+
+    x2 = bitString[bitIndex:bitIndex+11]
+    bitIndex += 11
+
+    y1 = bitString[bitIndex:bitIndex+11]
+    bitIndex += 11
+
+    x1 = bitString[bitIndex:bitIndex+11]
+    bitIndex += 11
+
+    right = bitString[bitIndex:bitIndex+6]
+    bitIndex += 6
+
+    left = bitString[bitIndex:bitIndex+6]
+    bitIndex += 6
+
+    sheetNo = bitString[bitIndex:bitIndex+8]
+    bitIndex += 8
+
+    fontSheetData = [
+        int(sheetNo, 2),
+        int(left, 2),
+        int(right, 2),
+        int(x1, 2),
+        int(y1, 2),
+        int(x2, 2),
+        int(y2, 2)
+    ]
+    return fontSheetData
+
+index = 0
 f = open("FONT.SFF", "rb")
 line = f.read()
 f.close()
 
-print("GUID:", getName())
+print("GUID:", getName(line, index))
+index += 4
 
 fontSize = line[index]
 index += 1
 print("FontSize:", fontSize)
 
-sheetMax = line[index];
+sheetMax = line[index]
 index += 1
 print("SheetMax:", sheetMax)
 
@@ -87,12 +99,17 @@ fontMax = struct.unpack("<h", line[index:index + 2])[0]
 index += 2
 print("FontMax:", fontMax)
 
-indexTable = []
-for i in range(len(textList)):
+zenkakuIndex = 157
+inputTableList = []
+for i in range(len(allHexTextList)):
     idx = struct.unpack("<h", line[index:index + 2])[0]
     index += 2
     if idx != -1:
-        indexTable.append(i)
+        if i < zenkakuIndex:
+            text = struct.pack(">B", allHexTextList[i]).decode("cp932")
+        else:
+            text = struct.pack(">H", allHexTextList[i]).decode("cp932")
+        inputTableList.append(text)
 
 for i in range(sheetMax):
     sheetName = struct.unpack("<32s", line[index:index + 32])[0]
@@ -102,37 +119,6 @@ for i in range(sheetMax):
     print("SheetName:", sheetName)
 
 for i in range(fontMax):
-    print(hex(index), end=", ")
-    sheetNo = line[index]
-
-    print("【{0}】 -> ".format(textList[indexTable[i]]), end=" ")
-    print(sheetNo, end=", ")
-    index += 1
-
-    # left padding?
-    print(line[index], end=", ")
-    index += 1
-
-    # x1
-    print(line[index], end=", ")
-    index += 1
-
-    # x2
-    print(line[index], end=", | ")
-    index += 1
-
-    # y1
-    print(line[index], end=", | ")
-    index += 1
-
-    # No, offset?
-    print(line[index], end=", | ")
-    index += 1
-    print(line[index], end=", | ")
-    index += 1
-
-    # y2
-    print(line[index], end=", | ")
-    index += 1
-
-    print()
+    fontSheetData = convertFontSheetData(line[index:index + 8])
+    index += 8
+    print(inputTableList[i], fontSheetData)
